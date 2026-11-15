@@ -107,6 +107,63 @@ const createGame = async (req, res) => {
 };
 
 /**
+ * @route PUT /api/games/:id or POST /api/games/:id/edit
+ * Admin: Edit game details & configurable winning rules
+ */
+const updateGame = async (req, res) => {
+  try {
+    const { title, ticketPrice, scheduledStartTime, winningRules, description } = req.body;
+    const game = await GameSession.findById(req.params.id);
+
+    if (!game) {
+      return res.status(404).json({ success: false, message: 'Game session not found' });
+    }
+
+    if (game.status === 'completed') {
+      return res.status(400).json({ success: false, message: 'Cannot edit concluded games' });
+    }
+
+    if (title) game.title = title.trim();
+    if (description !== undefined) game.description = description.trim();
+    if (ticketPrice !== undefined) game.ticketPrice = Number(ticketPrice);
+    if (scheduledStartTime) game.scheduledStartTime = new Date(scheduledStartTime);
+
+    if (winningRules && Array.isArray(winningRules)) {
+      // Retain existing winners/claims if any rule was claimed
+      game.winningRules = winningRules.map(newRule => {
+        const existing = game.winningRules.find(r => r.ruleKey === newRule.ruleKey);
+        return {
+          ...newRule,
+          claimed: existing ? existing.claimed : false,
+          winners: existing ? existing.winners : []
+        };
+      });
+      game.totalPrizePool = game.winningRules.reduce((sum, r) => sum + (r.prizeAmount || 0), 0);
+    }
+
+    await game.save();
+
+    await AuditLog.create({
+      action: 'EDIT_GAME',
+      category: 'GAME_CONTROL',
+      actorId: req.user._id,
+      actorName: req.user.name,
+      actorRole: req.user.role,
+      targetId: game._id.toString(),
+      details: { title: game.title, ticketPrice: game.ticketPrice, prizePool: game.totalPrizePool }
+    });
+
+    res.json({
+      success: true,
+      message: 'Game session updated successfully',
+      game
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
  * @route POST /api/games/:id/start
  * Admin: Start game
  */
@@ -286,6 +343,7 @@ module.exports = {
   getGameLobby,
   getGameDetails,
   createGame,
+  updateGame,
   startGame,
   pauseGame,
   endGame,

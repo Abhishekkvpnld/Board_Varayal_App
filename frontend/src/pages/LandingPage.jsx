@@ -22,6 +22,7 @@ export default function LandingPage() {
   const [paymentOpen, setPaymentOpen] = useState(false);
 
   const PATTERNS = [
+    { title: 'Combined Line (Row, Col, or Diag)', desc: 'Complete ANY 4 numbers in a row, column, OR diagonal. Any 1 of 10 lines wins!', prize: '₹75', tag: 'Combined Structure' },
     { title: '4 in a Row', desc: 'Any 4 contiguous numbers in any horizontal line', prize: '₹75', tag: 'Horizontal' },
     { title: '4 in a Column', desc: 'Any 4 contiguous numbers in any vertical line', prize: '₹75', tag: 'Vertical' },
     { title: '4 in a Diagonal', desc: '4 contiguous numbers from corner to corner', prize: '₹80', tag: 'Diagonal' },

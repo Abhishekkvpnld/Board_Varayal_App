@@ -4,6 +4,7 @@ const {
   getGameLobby,
   getGameDetails,
   createGame,
+  updateGame,
   startGame,
   pauseGame,
   endGame,
@@ -18,8 +19,10 @@ router.get('/lobby', getGameLobby);
 router.get('/:id', getGameDetails);
 router.get('/:id/winners', getGameWinners);
 
-// Admin Game Management routes
+// Admin-Only Game Management routes (Only Admin can create and edit games)
 router.post('/create', protect, adminOnly, createGame);
+router.put('/:id', protect, adminOnly, updateGame);
+router.post('/:id/edit', protect, adminOnly, updateGame);
 router.post('/:id/start', protect, adminOnly, startGame);
 router.post('/:id/pause', protect, adminOnly, pauseGame);
 router.post('/:id/end', protect, adminOnly, endGame);

@@ -50,6 +50,15 @@ export default function AdminDashboardPage() {
     { ruleKey: 'full_house', name: 'Full House (All 16 Numbers Stamped)', prizeAmount: 500, enabled: true }
   ]);
 
+  // Edit Game state
+  const [editGameModalOpen, setEditGameModalOpen] = useState(false);
+  const [editingGame, setEditingGame] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPrice, setEditPrice] = useState(25);
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editRules, setEditRules] = useState([]);
+
   // Payments state
   const [payments, setPayments] = useState([]);
   const [paymentFilter, setPaymentFilter] = useState('pending');
@@ -143,6 +152,50 @@ export default function AdminDashboardPage() {
       });
       setCreateGameOpen(false);
       setNewGameTitle('');
+      fetchGames();
+      fetchAnalytics();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const openEditModal = (g) => {
+    setEditingGame(g);
+    setEditTitle(g.title || '');
+    setEditPrice(g.ticketPrice || 25);
+    setEditDescription(g.description || '');
+    setEditStartTime(g.scheduledStartTime ? new Date(g.scheduledStartTime).toISOString().slice(0, 16) : '');
+    const merged = configuredRules.map(baseRule => {
+      const existing = (g.winningRules || []).find(r => r.ruleKey === baseRule.ruleKey);
+      if (existing) {
+        return {
+          ...baseRule,
+          name: existing.name || baseRule.name,
+          prizeAmount: existing.prizeAmount !== undefined ? existing.prizeAmount : baseRule.prizeAmount,
+          enabled: existing.enabled !== undefined ? existing.enabled : true,
+          claimed: existing.claimed || false,
+          winners: existing.winners || []
+        };
+      }
+      return { ...baseRule, enabled: false };
+    });
+    setEditRules(merged);
+    setEditGameModalOpen(true);
+  };
+
+  const handleUpdateGame = async (e) => {
+    e.preventDefault();
+    if (!editingGame) return;
+    try {
+      await api.put(`/games/${editingGame._id}`, {
+        title: editTitle,
+        ticketPrice: Number(editPrice),
+        scheduledStartTime: editStartTime || undefined,
+        description: editDescription,
+        winningRules: editRules.filter(r => r.enabled)
+      });
+      setEditGameModalOpen(false);
+      setEditingGame(null);
       fetchGames();
       fetchAnalytics();
     } catch (err) {

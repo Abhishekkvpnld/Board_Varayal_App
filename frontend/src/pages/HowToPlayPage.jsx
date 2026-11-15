@@ -14,6 +14,17 @@ import {
 export default function HowToPlayPage() {
   const PATTERNS_LIST = [
     {
+      name: 'Combined Line (Horizontal, Vertical, or Diagonal)',
+      badge: '★ Combined Structure',
+      description: 'The master line pattern: Completing ANY 4 numbers in a horizontal row, ANY vertical column, OR EITHER diagonal (10 total lines). Getting any one of these qualifies you immediately for the prize!',
+      sampleGrid: [
+        [1, 1, 1, 1],
+        [1, 1, 0, 0],
+        [1, 0, 1, 0],
+        [1, 0, 0, 1]
+      ]
+    },
+    {
       name: '4 in a Row (Horizontal Line)',
       description: 'Any 4 contiguous numbers forming a complete horizontal row across the board.',
       sampleGrid: [
@@ -167,7 +178,14 @@ export default function HowToPlayPage() {
               className="bg-dark-850 border border-dark-700/80 rounded-2xl p-5 space-y-3 flex flex-col justify-between"
             >
               <div className="space-y-1">
-                <h3 className="font-bold text-white text-sm">{pat.name}</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-bold text-white text-sm">{pat.name}</h3>
+                  {pat.badge && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      {pat.badge}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-slate-400 leading-relaxed">{pat.description}</p>
               </div>
 
