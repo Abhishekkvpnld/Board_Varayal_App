@@ -100,7 +100,9 @@ async function seedInitialData() {
         walletBalance: 25000,
         isAdult: true,
         stateJurisdiction: 'Kerala',
-        termsAccepted: true
+        termsAccepted: true,
+        isVerified: true,
+        isBlocked: false
       });
       console.log('[Init] Default Admin created (Phone: 9876543210 / Password: AdminPassword@2026)');
     }
@@ -116,13 +118,15 @@ async function seedInitialData() {
         walletBalance: 500,
         isAdult: true,
         stateJurisdiction: 'Kerala',
-        termsAccepted: true
+        termsAccepted: true,
+        isVerified: true,
+        isBlocked: false
       });
       console.log('[Init] Demo Player created (Phone: 9895012345 / Password: PlayerPassword@2026)');
     }
 
     // 4. Ensure an active and upcoming game session exists
-    const existingActiveGame = await GameSession.findOne({ status: { $in: ['active', 'scheduled'] } });
+    const existingActiveGame = await GameSession.findOne({ gameCode: 'BV-LIVE' });
     if (!existingActiveGame) {
       console.log('[Init] Creating default Game Sessions...');
       const admin = await User.findOne({ role: 'admin' });
@@ -163,7 +167,7 @@ const PORT = process.env.PORT || 5000;
 
 connectDB().then(async () => {
   await seedInitialData();
-  server.listen(PORT, () => {
-    console.log(`[Board Varayal Server] Running on http://localhost:${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`[Board Varayal Server] Running on http://127.0.0.1:${PORT}`);
   });
 });

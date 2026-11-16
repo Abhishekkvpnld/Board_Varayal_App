@@ -20,6 +20,10 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'User not found or deleted.' });
     }
 
+    if (user.isBlocked) {
+      return res.status(403).json({ success: false, message: 'Your account has been blocked by the administrator.' });
+    }
+
     if (!user.isActive) {
       return res.status(403).json({ success: false, message: 'Account is deactivated. Contact admin.' });
     }
@@ -39,8 +43,22 @@ const adminOnly = (req, res, next) => {
   }
 };
 
-module.exports = {
-  protect,
-  adminOnly
+const verifiedOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    return next();
+  }
+  if (req.user && req.user.isVerified) {
+    next();
+  } else {
+    res.status(403).json({
+      success: false,
+      message: 'Your account is pending admin verification. You cannot access this feature yet.'
+    });
+  }
 };
 
+module.exports = {
+  protect,
+  adminOnly,
+  verifiedOnly
+};

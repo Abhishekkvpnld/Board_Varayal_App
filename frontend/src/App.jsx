@@ -12,7 +12,7 @@ import RegisterPage from './pages/RegisterPage';
 import HowToPlayPage from './pages/HowToPlayPage';
 import { useAuth } from './context/AuthContext';
 
-function ProtectedRoute({ children, adminOnly = false }) {
+function ProtectedRoute({ children, adminOnly = false, playerOnly = false }) {
   const { isAuthenticated, isAdmin, loading } = useAuth();
 
   if (loading) {
@@ -31,19 +31,18 @@ function ProtectedRoute({ children, adminOnly = false }) {
     return <Navigate to="/lobby" replace />;
   }
 
+  if (playerOnly && isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
   return children;
 }
 
 export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-dark-900 text-slate-100">
-      {/* Top Legal & Compliance Disclaimer Banner */}
-      <LegalComplianceBanner />
-
-      {/* Main Navigation Header */}
       <Navbar />
 
-      {/* Main Routed Content */}
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -55,7 +54,7 @@ export default function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute playerOnly={true}>
                 <PlayerDashboardPage />
               </ProtectedRoute>
             }
@@ -72,7 +71,6 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* Footer */}
       <footer className="bg-dark-900 border-t border-dark-800 text-xs text-slate-500 py-8 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div>
@@ -87,7 +85,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      <LegalComplianceBanner />
     </div>
   );
 }
-

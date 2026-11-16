@@ -16,6 +16,18 @@ const submitPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Amount and 12-digit UTR reference are required' });
     }
 
+    if (req.user.role === 'admin') {
+      return res.status(403).json({ success: false, message: 'Administrators do not participate in gameplay or deposits.' });
+    }
+
+    if (!req.user.isVerified) {
+      return res.status(403).json({ success: false, message: 'Account is pending administrator verification.' });
+    }
+
+    if (req.user.isBlocked) {
+      return res.status(403).json({ success: false, message: 'Account is blocked.' });
+    }
+
     const cleanUtr = utrNumber.trim().toUpperCase();
     if (cleanUtr.length < 8) {
       return res.status(400).json({ success: false, message: 'Please provide a valid banking UTR / Transaction Reference' });

@@ -86,6 +86,8 @@ export function AuthProvider({ children }) {
         loading,
         isAuthenticated: Boolean(user && token),
         isAdmin: user?.role === 'admin',
+        isVerified: user?.isVerified || user?.role === 'admin',
+        isBlocked: user?.isBlocked || false,
         login,
         register,
         logout,
@@ -103,4 +105,3 @@ export function useAuth() {
   if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }
-

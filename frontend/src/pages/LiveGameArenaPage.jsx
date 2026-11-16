@@ -11,7 +11,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Plus,
-  Play
+  Play,
+  Lock
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +20,6 @@ import { useSocket } from '../context/SocketContext';
 import LiveSpinnerWheel from '../components/LiveSpinnerWheel';
 import GameBoardView from '../components/GameBoardView';
 import BoardSelectorModal from '../components/BoardSelectorModal';
-import PaymentModal from '../components/PaymentModal';
 
 export default function LiveGameArenaPage() {
   const { id } = useParams();
@@ -32,7 +32,6 @@ export default function LiveGameArenaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [boardModalOpen, setBoardModalOpen] = useState(false);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [isAutoSpinning, setIsAutoSpinning] = useState(false);
 
   // Fetch initial game state and user allocation
@@ -220,16 +219,31 @@ export default function LiveGameArenaPage() {
             {game.status}
           </span>
 
-          {!allocation && (
-            <button
-              onClick={() => {
-                if (!isAuthenticated) navigate('/login');
-                else setBoardModalOpen(true);
-              }}
-              className="px-4 py-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold rounded-xl text-xs shadow-md shadow-brand-500/25 flex items-center gap-1.5 transition"
+          {!allocation && !isAdmin && (
+            game.status === 'scheduled' ? (
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) navigate('/login');
+                  else setBoardModalOpen(true);
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold rounded-xl text-xs shadow-md shadow-brand-500/25 flex items-center gap-1.5 transition"
+              >
+                <Plus className="w-4 h-4" /> Pick 4×4 Board (₹{game.ticketPrice})
+              </button>
+            ) : (
+              <span className="px-3 py-1.5 bg-dark-800 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5" /> Boards Locked (Game Live)
+              </span>
+            )
+          )}
+
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4" /> Pick 4×4 Board
-            </button>
+              Admin Console ↗
+            </Link>
           )}
         </div>
       </div>
@@ -266,6 +280,56 @@ export default function LiveGameArenaPage() {
               allocation={allocation}
               lastDrawnNumber={game.currentNumber}
             />
+          ) : isAdmin ? (
+            <div className="bg-dark-850 border border-amber-500/30 rounded-3xl p-6 sm:p-8 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="p-3 bg-amber-500/20 text-amber-400 rounded-2xl">
+                  <Gamepad2 className="w-6 h-6" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Administrator Game Monitor</h3>
+                  <p className="text-xs text-slate-400">You are monitoring this session as Administrator. Admins control the game and live spinner but do not play.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2">
+                <div className="p-3 bg-dark-900 rounded-xl border border-dark-700/80">
+                  <span className="text-[10px] text-slate-400 block">Total Booked</span>
+                  <strong className="text-base font-bold text-emerald-400">{game.totalBoardsBooked || 0} / 2000</strong>
+                </div>
+                <div className="p-3 bg-dark-900 rounded-xl border border-dark-700/80">
+                  <span className="text-[10px] text-slate-400 block">Drawn Balls</span>
+                  <strong className="text-base font-bold text-white font-mono">{game.drawnNumbers?.length || 0} / 119</strong>
+                </div>
+                <div className="p-3 bg-dark-900 rounded-xl border border-dark-700/80">
+                  <span className="text-[10px] text-slate-400 block">Remaining Balls</span>
+                  <strong className="text-base font-bold text-amber-400 font-mono">{119 - (game.drawnNumbers?.length || 0)}</strong>
+                </div>
+                <div className="p-3 bg-dark-900 rounded-xl border border-dark-700/80">
+                  <span className="text-[10px] text-slate-400 block">Prize Pool</span>
+                  <strong className="text-base font-bold text-brand-400">₹{game.totalPrizePool || 0}</strong>
+                </div>
+              </div>
+            </div>
+          ) : game.status !== 'scheduled' ? (
+            <div className="bg-dark-850 border border-dark-700 rounded-3xl p-8 sm:p-12 text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20">
+                <Lock className="w-7 h-7" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold text-white">Board Selection is Locked</h3>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  This game has already started drawing numbers. New boards cannot be selected once the game is live. You can follow the live spinner or return to the lobby to pre-book a board for the next game.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Link
+                  to="/lobby"
+                  className="px-5 py-2.5 bg-dark-700 hover:bg-dark-600 text-white font-bold rounded-xl text-xs transition inline-flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Go to Game Lobby
+                </Link>
+              </div>
+            </div>
           ) : (
             <div className="bg-gradient-to-b from-dark-850 to-dark-900 border-2 border-dashed border-dark-700 rounded-3xl p-8 sm:p-12 text-center space-y-4">
               <div className="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-400 flex items-center justify-center mx-auto border border-brand-500/20 shadow-inner">
@@ -352,16 +416,12 @@ export default function LiveGameArenaPage() {
           isOpen={boardModalOpen}
           onClose={() => setBoardModalOpen(false)}
           gameSession={game}
-          openPaymentModal={() => setPaymentModalOpen(true)}
           onBoardAllocated={(newAlloc) => {
             setAllocation(newAlloc);
             fetchGameData();
           }}
         />
       )}
-
-      {/* Payment Modal */}
-      <PaymentModal isOpen={paymentModalOpen} onClose={() => setPaymentModalOpen(false)} />
     </div>
   );
 }

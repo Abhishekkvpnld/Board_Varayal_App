@@ -9,9 +9,6 @@ const generateToken = (id, role) => {
   });
 };
 
-/**
- * @route POST /api/auth/register
- */
 const register = async (req, res) => {
   try {
     const { name, phone, password, stateJurisdiction, isAdult, termsAccepted, adminSecret } = req.body;
@@ -20,7 +17,6 @@ const register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide name, phone number, and password' });
     }
 
-    // Indian Gaming Compliance Checks
     if (!isAdult) {
       return res.status(400).json({
         success: false,
@@ -31,7 +27,7 @@ const register = async (req, res) => {
     if (isRestrictedJurisdiction(stateJurisdiction)) {
       return res.status(403).json({
         success: false,
-        message: `Regulatory Notice: Due to statutory regulations in ${stateJurisdiction}, prize-based gameplay is restricted in your region. Registration cannot proceed.`
+        message: `Regulatory Notice: Due to statutory regulations in ${stateJurisdiction}, prize-based gameplay is restricted in your region.`
       });
     }
 
@@ -45,7 +41,6 @@ const register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'A user with this phone number already exists.' });
     }
 
-    // Role check: Admin creation if secret matches
     let role = 'user';
     if (adminSecret && adminSecret === (process.env.ADMIN_SECRET_KEY || 'ADMIN_VARAYAL_SECURE_KEY')) {
       role = 'admin';
@@ -59,10 +54,10 @@ const register = async (req, res) => {
       stateJurisdiction: stateJurisdiction || 'Kerala',
       isAdult: true,
       termsAccepted: Boolean(termsAccepted),
-      walletBalance: role === 'admin' ? 10000 : 0
+      walletBalance: role === 'admin' ? 10000 : 0,
+      isVerified: role === 'admin',
+      isBlocked: false
     });
-
-    const token = generateToken(user._id, user.role);
 
     await AuditLog.create({
       action: 'USER_REGISTERED',
@@ -73,18 +68,29 @@ const register = async (req, res) => {
       details: { phone: cleanPhone, state: stateJurisdiction, role }
     });
 
+    if (role === 'admin') {
+      const token = generateToken(user._id, user.role);
+      return res.status(201).json({
+        success: true,
+        message: 'Admin registration successful',
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          phone: user.phone,
+          role: user.role,
+          walletBalance: user.walletBalance,
+          stateJurisdiction: user.stateJurisdiction,
+          isVerified: user.isVerified,
+          isBlocked: user.isBlocked
+        }
+      });
+    }
+
     res.status(201).json({
       success: true,
-      message: 'Registration successful',
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        walletBalance: user.walletBalance,
-        stateJurisdiction: user.stateJurisdiction
-      }
+      message: 'Registration successful! Your account is pending admin verification. You will be able to login once an admin approves your account.',
+      pendingVerification: true
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -92,9 +98,6 @@ const register = async (req, res) => {
   }
 };
 
-/**
- * @route POST /api/auth/login
- */
 const login = async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -110,8 +113,24 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid phone number or password' });
     }
 
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been blocked by the administrator. Please contact support.',
+        isBlocked: true
+      });
+    }
+
     if (!user.isActive) {
       return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact support.' });
+    }
+
+    if (!user.isVerified && user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is pending admin verification. Please wait for the administrator to approve your registration.',
+        pendingVerification: true
+      });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -140,7 +159,9 @@ const login = async (req, res) => {
         phone: user.phone,
         role: user.role,
         walletBalance: user.walletBalance,
-        stateJurisdiction: user.stateJurisdiction
+        stateJurisdiction: user.stateJurisdiction,
+        isVerified: user.isVerified,
+        isBlocked: user.isBlocked
       }
     });
   } catch (error) {
@@ -149,9 +170,6 @@ const login = async (req, res) => {
   }
 };
 
-/**
- * @route GET /api/auth/me
- */
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -163,7 +181,9 @@ const getMe = async (req, res) => {
         phone: user.phone,
         role: user.role,
         walletBalance: user.walletBalance,
-        stateJurisdiction: user.stateJurisdiction
+        stateJurisdiction: user.stateJurisdiction,
+        isVerified: user.isVerified,
+        isBlocked: user.isBlocked
       }
     });
   } catch (error) {
@@ -184,4 +204,3 @@ module.exports = {
   getMe,
   getComplianceTerms
 };
-

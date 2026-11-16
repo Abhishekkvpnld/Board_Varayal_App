@@ -138,6 +138,29 @@ const allocateBoard = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Game session ID and board number are required' });
     }
 
+    // Admin cannot participate in gameplay
+    if (req.user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Administrators are game controllers and cannot participate or select boards in games.'
+      });
+    }
+
+    // Must be verified by admin
+    if (!req.user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is pending administrator verification. You cannot select boards yet.'
+      });
+    }
+
+    if (req.user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is blocked. You cannot participate in games.'
+      });
+    }
+
     const num = parseInt(boardNumber);
     if (isNaN(num) || num < 1 || num > 2000) {
       return res.status(400).json({ success: false, message: 'Board number must be between 1 and 2000' });
@@ -149,8 +172,12 @@ const allocateBoard = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Game session not found' });
     }
 
-    if (session.status === 'completed' || session.status === 'cancelled') {
-      return res.status(400).json({ success: false, message: `Cannot select board: Game is ${session.status}` });
+    // Board selection is only allowed before game starts (scheduled status)
+    if (session.status !== 'scheduled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Board selection is locked! Boards cannot be chosen once the game has started.'
+      });
     }
 
     // 2. Check if user already booked a board in this session (1 board per user per session policy)
@@ -161,20 +188,13 @@ const allocateBoard = async (req, res) => {
     if (existingUserAllocation) {
       return res.status(400).json({
         success: false,
-        message: `You already booked Board #${existingUserAllocation.boardNumber} for this game session!`
+        message: `Your board is locked! You already selected Board #${existingUserAllocation.boardNumber} for this game session.`
       });
     }
 
-    // 3. Check wallet balance
     const user = await User.findById(userId);
-    if (user.walletBalance < session.ticketPrice) {
-      return res.status(402).json({
-        success: false,
-        message: `Insufficient wallet balance (₹${user.walletBalance}). Required: ₹${session.ticketPrice}. Please recharge via UPI.`
-      });
-    }
 
-    // 4. Retrieve master board template
+    // 3. Retrieve master board template
     const masterBoard = await Board.findOne({ boardNumber: num });
     if (!masterBoard) {
       return res.status(404).json({ success: false, message: `Board #${num} not found in master catalog.` });
@@ -207,11 +227,7 @@ const allocateBoard = async (req, res) => {
       throw dbErr;
     }
 
-    // 7. Deduct ticket price and update counters
-    await User.findByIdAndUpdate(userId, {
-      $inc: { walletBalance: -session.ticketPrice }
-    });
-
+    // Increment booked boards counter
     await GameSession.findByIdAndUpdate(session._id, {
       $inc: { totalBoardsBooked: 1 }
     });
@@ -288,11 +304,32 @@ const getMySessionBoard = async (req, res) => {
   }
 };
 
+/**
+ * @route GET /api/boards/my-history
+ * Get player's allocated boards across games
+ */
+const getMyAllocationsHistory = async (req, res) => {
+  try {
+    const allocations = await GameBoardAllocation.find({ userId: req.user._id })
+      .populate('gameSessionId', 'title gameCode status scheduledStartTime ticketPrice')
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    res.json({
+      success: true,
+      allocations
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getBoardStats,
   triggerGenerateBoards,
   getSessionBoards,
   allocateBoard,
-  getMySessionBoard
+  getMySessionBoard,
+  getMyAllocationsHistory
 };
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, Check, AlertCircle, Sparkles, Filter, ChevronLeft, ChevronRight, CheckCircle2, Lock } from 'lucide-react';
+import { X, Search, Check, AlertCircle, Sparkles, Filter, ChevronLeft, ChevronRight, Lock, ShieldAlert } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
-export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoardAllocated, openPaymentModal }) {
-  const { user, setWalletBalance } = useAuth();
+export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoardAllocated }) {
+  const { user } = useAuth();
   const [boards, setBoards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -15,6 +15,8 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
   const [selectedBoard, setSelectedBoard] = useState(null);
   const [allocating, setAllocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  const isGameStarted = gameSession?.status !== 'scheduled';
 
   useEffect(() => {
     if (isOpen && gameSession?._id) {
@@ -53,8 +55,8 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
   const handleConfirmAllocation = async () => {
     if (!selectedBoard || !gameSession) return;
 
-    if ((user?.walletBalance || 0) < gameSession.ticketPrice) {
-      setErrorMsg(`Insufficient balance. Board price is ₹${gameSession.ticketPrice}, your balance is ₹${user?.walletBalance || 0}.`);
+    if (isGameStarted) {
+      setErrorMsg('This game has already started. Board selection is locked!');
       return;
     }
 
@@ -66,17 +68,13 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
         boardNumber: selectedBoard.boardNumber
       });
 
-      // Update local wallet balance
-      const newBal = (user?.walletBalance || 0) - gameSession.ticketPrice;
-      setWalletBalance(newBal);
-
       if (onBoardAllocated) {
         onBoardAllocated(res.allocation);
       }
       onClose();
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to allocate board');
-      fetchBoards(); // refresh in case it was just booked
+      setErrorMsg(err.message || 'Failed to lock board');
+      fetchBoards();
     } finally {
       setAllocating(false);
     }
@@ -99,8 +97,7 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
               </h2>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Ticket: <strong className="text-brand-400">₹{gameSession.ticketPrice}</strong> | Your Balance:{' '}
-              <strong className="text-emerald-400">₹{user?.walletBalance || 0}</strong>
+              Board Price: <strong className="text-brand-400 font-bold">₹{gameSession.ticketPrice}</strong> • Once selected, your board is locked for the round.
             </p>
           </div>
           <button
@@ -110,6 +107,16 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Game Started Notice */}
+        {isGameStarted && (
+          <div className="mx-4 mt-3 p-3 bg-amber-950/40 border border-amber-800/40 text-amber-300 rounded-xl text-xs flex items-center gap-2">
+            <Lock className="w-4 h-4 shrink-0 text-amber-400" />
+            <span>
+              <strong>Game In Progress:</strong> Board selection is locked. Only boards pre-booked before start can participate.
+            </span>
+          </div>
+        )}
 
         {/* Filter & Search Bar */}
         <div className="p-4 border-b border-dark-700 bg-dark-900/40 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -154,26 +161,15 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
           </div>
 
           <div className="text-right text-[11px] text-slate-400 w-full sm:w-auto">
-            Available: <strong className="text-emerald-400">{stats.totalAvailable}</strong> / 2,000
+            Available: <strong className="text-emerald-400">{stats.totalAvailable}</strong> / 2,000 • Locked:{' '}
+            <strong className="text-rose-400">{stats.totalBooked}</strong>
           </div>
         </div>
 
         {errorMsg && (
-          <div className="mx-4 mt-3 p-3 bg-rose-950/40 border border-rose-800/40 text-rose-300 rounded-xl text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-            {(user?.walletBalance || 0) < gameSession.ticketPrice && (
-              <button
-                onClick={() => {
-                  if (openPaymentModal) openPaymentModal();
-                }}
-                className="px-2.5 py-1 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-lg text-xs transition"
-              >
-                Add Funds
-              </button>
-            )}
+          <div className="mx-4 mt-3 p-3 bg-rose-950/40 border border-rose-800/40 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
           </div>
         )}
 
@@ -192,25 +188,29 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
                   return (
                     <button
                       key={b.boardNumber}
-                      disabled={b.isBooked}
+                      disabled={b.isBooked || isGameStarted}
                       onClick={() => setSelectedBoard(b)}
                       className={`relative p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center ${
                         b.isMyBoard
-                          ? 'border-emerald-500 bg-emerald-950/30 text-emerald-300'
+                          ? 'border-emerald-500 bg-emerald-950/40 text-emerald-300 ring-2 ring-emerald-500/40'
                           : b.isBooked
-                          ? 'border-dark-700/50 bg-dark-900/60 text-slate-600 opacity-60 cursor-not-allowed'
+                          ? 'border-dark-700/60 bg-dark-900/80 text-rose-400/80 opacity-60 cursor-not-allowed'
                           : isSelected
                           ? 'border-brand-500 bg-brand-500/20 text-white ring-2 ring-brand-500/50'
+                          : isGameStarted
+                          ? 'border-dark-800 bg-dark-900/40 text-slate-600 cursor-not-allowed'
                           : 'border-dark-700 bg-dark-800/80 hover:border-brand-500/50 hover:bg-dark-700/60 text-slate-200'
                       }`}
                     >
                       <span className="text-xs font-mono font-bold">#{b.boardNumber}</span>
                       {b.isBooked ? (
-                        <span className="text-[10px] text-slate-500 flex items-center gap-0.5 mt-0.5">
-                          <Lock className="w-2.5 h-2.5" /> Taken
+                        <span className="text-[10px] text-rose-400 flex items-center gap-0.5 mt-0.5 font-bold">
+                          <Lock className="w-2.5 h-2.5" /> Locked
                         </span>
                       ) : b.isMyBoard ? (
-                        <span className="text-[10px] text-emerald-400 font-semibold mt-0.5">You</span>
+                        <span className="text-[10px] text-emerald-400 font-bold mt-0.5">Yours</span>
+                      ) : isGameStarted ? (
+                        <span className="text-[10px] text-slate-500 mt-0.5">Closed</span>
                       ) : (
                         <span className="text-[10px] text-emerald-400 mt-0.5">Free</span>
                       )}
@@ -280,7 +280,7 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
               ) : (
                 <div className="h-56 flex flex-col items-center justify-center text-center text-xs text-slate-500 space-y-2">
                   <Sparkles className="w-8 h-8 text-slate-600 animate-pulse" />
-                  <p>Click on any board number on the left to inspect its 4×4 number layout.</p>
+                  <p>Click on any board number on the left to inspect its 4×4 layout.</p>
                 </div>
               )}
             </div>
@@ -289,8 +289,13 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
             {selectedBoard && (
               <div className="pt-2 border-t border-dark-800">
                 {stats.hasUserBooked ? (
-                  <div className="text-center p-2.5 bg-dark-800 rounded-lg text-xs text-slate-400">
-                    You already have Board #{stats.userBoardNumber} for this game.
+                  <div className="text-center p-3 bg-emerald-950/30 border border-emerald-800/40 rounded-xl text-xs text-emerald-300">
+                    <Check className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+                    You are locked in with <strong>Board #{stats.userBoardNumber}</strong>.
+                  </div>
+                ) : isGameStarted ? (
+                  <div className="text-center p-3 bg-dark-800 rounded-xl text-xs text-slate-400 flex items-center justify-center gap-1.5">
+                    <Lock className="w-4 h-4 text-amber-400" /> Game already started. Boards locked.
                   </div>
                 ) : (
                   <button
@@ -299,10 +304,10 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
                     className="w-full py-3 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 text-xs sm:text-sm flex items-center justify-center gap-2 transition disabled:opacity-50"
                   >
                     {allocating ? (
-                      'Securing Board...'
+                      'Locking Board...'
                     ) : (
                       <>
-                        <Check className="w-4 h-4" /> Book Board #{selectedBoard.boardNumber} (₹{gameSession.ticketPrice})
+                        <Lock className="w-4 h-4" /> Lock In Board #{selectedBoard.boardNumber} (₹{gameSession.ticketPrice})
                       </>
                     )}
                   </button>
@@ -315,4 +320,3 @@ export default function BoardSelectorModal({ isOpen, onClose, gameSession, onBoa
     </div>
   );
 }
-
