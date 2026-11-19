@@ -82,92 +82,92 @@ app.use((err, req, res, next) => {
 });
 
 // Seed default data if necessary
-async function seedInitialData() {
-  try {
-    // 1. Ensure 2,000 unique 4x4 boards exist
-    console.log('[Init] Checking 2,000 unique master boards...');
-    await generate2000UniqueBoards(false);
+// async function seedInitialData() {
+//   try {
+//     // 1. Ensure 2,000 unique 4x4 boards exist
+//     console.log('[Init] Checking 2,000 unique master boards...');
+//     await generate2000UniqueBoards(false);
 
-    // 2. Ensure default admin account exists
-    const adminExists = await User.findOne({ role: 'admin' });
-    if (!adminExists) {
-      console.log('[Init] Creating default administrator account...');
-      await User.create({
-        name: 'Master Admin',
-        phone: '9876543210',
-        password: 'AdminPassword@2026',
-        role: 'admin',
-        walletBalance: 25000,
-        isAdult: true,
-        stateJurisdiction: 'Kerala',
-        termsAccepted: true,
-        isVerified: true,
-        isBlocked: false
-      });
-      console.log('[Init] Default Admin created (Phone: 9876543210 / Password: AdminPassword@2026)');
-    }
+//     // 2. Ensure default admin account exists
+//     const adminExists = await User.findOne({ role: 'admin' });
+//     if (!adminExists) {
+//       console.log('[Init] Creating default administrator account...');
+//       await User.create({
+//         name: 'Master Admin',
+//         phone: '9876543210',
+//         password: 'AdminPassword@2026',
+//         role: 'admin',
+//         walletBalance: 25000,
+//         isAdult: true,
+//         stateJurisdiction: 'Kerala',
+//         termsAccepted: true,
+//         isVerified: true,
+//         isBlocked: false
+//       });
+//       console.log('[Init] Default Admin created (Phone: 9876543210 / Password: AdminPassword@2026)');
+//     }
 
-    // 3. Ensure a live demo user exists for immediate evaluation
-    const demoUser = await User.findOne({ phone: '9895012345' });
-    if (!demoUser) {
-      await User.create({
-        name: 'Rahul Varma',
-        phone: '9895012345',
-        password: 'PlayerPassword@2026',
-        role: 'user',
-        walletBalance: 500,
-        isAdult: true,
-        stateJurisdiction: 'Kerala',
-        termsAccepted: true,
-        isVerified: true,
-        isBlocked: false
-      });
-      console.log('[Init] Demo Player created (Phone: 9895012345 / Password: PlayerPassword@2026)');
-    }
+//     // 3. Ensure a live demo user exists for immediate evaluation
+//     const demoUser = await User.findOne({ phone: '9895012345' });
+//     if (!demoUser) {
+//       await User.create({
+//         name: 'Rahul Varma',
+//         phone: '9895012345',
+//         password: 'PlayerPassword@2026',
+//         role: 'user',
+//         walletBalance: 500,
+//         isAdult: true,
+//         stateJurisdiction: 'Kerala',
+//         termsAccepted: true,
+//         isVerified: true,
+//         isBlocked: false
+//       });
+//       console.log('[Init] Demo Player created (Phone: 9895012345 / Password: PlayerPassword@2026)');
+//     }
 
-    // 4. Ensure an active and upcoming game session exists
-    const existingActiveGame = await GameSession.findOne({ gameCode: 'BV-LIVE' });
-    if (!existingActiveGame) {
-      console.log('[Init] Creating default Game Sessions...');
-      const admin = await User.findOne({ role: 'admin' });
+//     // 4. Ensure an active and upcoming game session exists
+//     const existingActiveGame = await GameSession.findOne({ gameCode: 'BV-LIVE' });
+//     if (!existingActiveGame) {
+//       console.log('[Init] Creating default Game Sessions...');
+//       const admin = await User.findOne({ role: 'admin' });
 
-      // Create Active Live Game
-      await GameSession.create({
-        title: 'Kerala Mega Varayal Live #101',
-        gameCode: 'BV-LIVE',
-        description: 'Thrilling 4x4 Board Varayal live event with ₹1,000 total prize pool!',
-        status: 'active',
-        ticketPrice: 25,
-        scheduledStartTime: new Date(),
-        actualStartTime: new Date(),
-        drawnNumbers: [],
-        remainingNumbers: Array.from({ length: 119 }, (_, i) => i + 1),
-        createdBy: admin ? admin._id : null
-      });
+//       // Create Active Live Game
+//       await GameSession.create({
+//         title: 'Kerala Mega Varayal Live #101',
+//         gameCode: 'BV-LIVE',
+//         description: 'Thrilling 4x4 Board Varayal live event with ₹1,000 total prize pool!',
+//         status: 'active',
+//         ticketPrice: 25,
+//         scheduledStartTime: new Date(),
+//         actualStartTime: new Date(),
+//         drawnNumbers: [],
+//         remainingNumbers: Array.from({ length: 119 }, (_, i) => i + 1),
+//         createdBy: admin ? admin._id : null
+//       });
 
-      // Create Scheduled Game
-      const inOneHour = new Date(Date.now() + 60 * 60 * 1000);
-      await GameSession.create({
-        title: 'Night Star Jackpot Varayal #102',
-        gameCode: 'BV-NIGHT',
-        description: 'Super jackpot round tonight with bumper Full House prizes.',
-        status: 'scheduled',
-        ticketPrice: 50,
-        scheduledStartTime: inOneHour,
-        createdBy: admin ? admin._id : null
-      });
-      console.log('[Init] Game Sessions initialized.');
-    }
-  } catch (err) {
-    console.error('[Init Error]', err);
-  }
-}
+//       // Create Scheduled Game
+//       const inOneHour = new Date(Date.now() + 60 * 60 * 1000);
+//       await GameSession.create({
+//         title: 'Night Star Jackpot Varayal #102',
+//         gameCode: 'BV-NIGHT',
+//         description: 'Super jackpot round tonight with bumper Full House prizes.',
+//         status: 'scheduled',
+//         ticketPrice: 50,
+//         scheduledStartTime: inOneHour,
+//         createdBy: admin ? admin._id : null
+//       });
+//       console.log('[Init] Game Sessions initialized.');
+//     }
+//   } catch (err) {
+//     console.error('[Init Error]', err);
+//   }
+// }
 
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(async () => {
-  await seedInitialData();
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Board Varayal Server] Running on http://127.0.0.1:${PORT}`);
+  // await seedInitialData();
+  server.listen(PORT, () => {
+    console.log(`[Board Varayal Server] Running on PORT: ${PORT}`);
   });
 });
