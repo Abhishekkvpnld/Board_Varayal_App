@@ -1,225 +1,334 @@
+
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-  Gamepad2,
-  Sparkles,
-  Trophy,
-  ShieldCheck,
-  Zap,
-  Users,
-  ArrowRight,
-  Flame,
-  CheckCircle2,
-  Play
+  Sparkles, Trophy, ShieldCheck, Zap, ArrowRight,
+  Flame, CheckCircle2, Play, Crown, Gamepad2,
+  Star, Users, Target, Gift, CircleDollarSign
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import BoardSelectorModal from '../components/BoardSelectorModal';
 import PaymentModal from '../components/PaymentModal';
 
 export default function LandingPage() {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const [paymentOpen, setPaymentOpen] = useState(false);
 
   const PATTERNS = [
-    { title: 'Combined Line (Row, Col, or Diag)', desc: 'Complete ANY 4 numbers in a row, column, OR diagonal. Any 1 of 10 lines wins!', prize: '₹75', tag: 'Combined Structure' },
-    { title: '4 in a Row', desc: 'Any 4 contiguous numbers in any horizontal line', prize: '₹75', tag: 'Horizontal' },
-    { title: '4 in a Column', desc: 'Any 4 contiguous numbers in any vertical line', prize: '₹75', tag: 'Vertical' },
-    { title: '4 in a Diagonal', desc: '4 contiguous numbers from corner to corner', prize: '₹80', tag: 'Diagonal' },
-    { title: 'Four Corners', desc: 'Top-Left, Top-Right, Bottom-Left, Bottom-Right', prize: '₹85', tag: 'Corners' },
-    { title: 'Corner 2×2 Box', desc: '4 neighboring numbers forming a 2×2 cluster in any corner', prize: '₹80', tag: 'Corner Block' },
-    { title: 'Center Square', desc: 'Inner 2×2 four central connected cells', prize: '₹80', tag: 'Core Box' },
-    { title: '4 Connected Numbers', desc: 'Any 4 orthogonally adjacent connected numbers', prize: '₹60', tag: 'Contiguous' },
-    { title: 'Full House', desc: 'All 16 numbers marked on your 4×4 board', prize: '₹500+', tag: 'Mega Jackpot' }
+    { title: 'Combined Line', desc: 'Complete any 4 numbers in a row, column, or diagonal.', prize: '₹75', tag: 'Special', icon: Target, color: 'from-violet-500 to-purple-600' },
+    { title: '4 in a Row', desc: 'Any 4 contiguous numbers in a horizontal line.', prize: '₹75', tag: 'Horizontal', icon: Zap, color: 'from-blue-500 to-cyan-500' },
+    { title: '4 in a Column', desc: 'Any 4 contiguous numbers in a vertical line.', prize: '₹75', tag: 'Vertical', icon: Flame, color: 'from-orange-500 to-amber-500' },
+    { title: '4 in a Diagonal', desc: 'Complete 4 connected diagonal numbers.', prize: '₹80', tag: 'Diagonal', icon: ArrowRight, color: 'from-pink-500 to-rose-500' },
+    { title: 'Four Corners', desc: 'Mark all four corner numbers on your board.', prize: '₹85', tag: 'Corners', icon: Star, color: 'from-yellow-500 to-orange-500' },
+    { title: 'Corner 2×2 Box', desc: 'Complete a neighboring 2×2 block in any corner.', prize: '₹80', tag: 'Corner Block', icon: Gamepad2, color: 'from-emerald-500 to-teal-500' },
+    { title: 'Center Square', desc: 'Complete the four central connected cells.', prize: '₹80', tag: 'Core Box', icon: Sparkles, color: 'from-indigo-500 to-blue-600' },
+    { title: '4 Connected Numbers', desc: 'Any 4 orthogonally adjacent connected numbers.', prize: '₹60', tag: 'Contiguous', icon: Users, color: 'from-fuchsia-500 to-pink-500' },
+    { title: 'Full House', desc: 'Mark all 16 numbers on your 4×4 board.', prize: '₹500+', tag: 'Mega Jackpot', icon: Crown, color: 'from-amber-400 to-yellow-600' },
+  ];
+
+  const board = [
+    { n: 14, m: true }, { n: 42 }, { n: 88, m: true }, { n: 105 },
+    { n: 23 }, { n: 57, m: true }, { n: 91 }, { n: 112 },
+    { n: 31 }, { n: 64 }, { n: 79, m: true }, { n: 118 },
+    { n: 7 }, { n: 49 }, { n: 83 }, { n: 99 },
+  ];
+
+  const features = [
+    { icon: Sparkles, title: '2,000 Boards', sub: 'Unique combinations', color: 'text-violet-400', bg: 'bg-violet-500/15' },
+    { icon: Zap, title: 'Live Spinner', sub: 'Numbers 1–119', color: 'text-cyan-400', bg: 'bg-cyan-500/15' },
+    { icon: Trophy, title: 'Exciting Prizes', sub: 'Multiple patterns', color: 'text-amber-400', bg: 'bg-amber-500/15' },
+    { icon: ShieldCheck, title: 'Secure System', sub: 'Verified gameplay', color: 'text-emerald-400', bg: 'bg-emerald-500/15' },
   ];
 
   return (
-    <div className="space-y-16 pb-20">
-      {/* Hero Section */}
-      <section className="relative pt-12 pb-16 px-4 max-w-7xl mx-auto text-center overflow-hidden">
-        {/* Glow backdrop */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-brand-600/20 via-amber-500/15 to-transparent blur-3xl pointer-events-none -z-10" />
+    <div className="relative min-h-screen overflow-hidden bg-[#090b18] text-white pb-20">
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-dark-800/90 border border-brand-500/30 text-brand-300 text-xs font-semibold mb-6 shadow-md shadow-brand-500/10">
-          <Flame className="w-4 h-4 text-brand-400 fill-current animate-pulse" />
-          <span>Kerala's Traditional Board Varayal (ബോർഡ് വരയൽ) — Live Online</span>
+      {/* Background effects */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-violet-600/20 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-600/10 rounded-full blur-[120px]" />
+      </div>
+
+      {/* HERO */}
+      <section className="relative max-w-7xl mx-auto px-4 pt-16 sm:pt-24 pb-16 text-center">
+
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-400/30 text-violet-300 text-xs sm:text-sm font-bold mb-8 shadow-lg shadow-violet-500/10">
+          <Flame className="w-4 h-4 text-orange-400 animate-pulse" />
+          Kerala's Traditional Board Varayal
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          Live Online
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight max-w-4xl mx-auto leading-tight">
-          Real-time <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-amber-300 to-amber-500">4×4 Board Varayal</span> with Live 1–119 Spinner
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight max-w-5xl mx-auto leading-[1.12]">
+          Experience the
+          <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-pink-400 to-cyan-400">
+            Thrill of Board Varayal
+          </span>
+          <span className="block text-white mt-2">
+            4×4 Gaming Arena
+          </span>
         </h1>
 
-        <p className="mt-5 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-          Select your unique card from 2,000 verified boards. Watch the live randomized number spinner, mark your board in real time, and win instant cash prizes on lines, corners, and full house!
+        <p className="mt-7 text-sm sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          Choose your exclusive board from 2,000 unique cards.
+          Follow the live 1–119 number spinner, mark your matches
+          and compete across exciting winning patterns.
         </p>
 
-        {/* Call to actions */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <div className="mt-9 flex flex-col sm:flex-row justify-center gap-4">
           <Link
             to="/lobby"
-            className="px-6 py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold rounded-xl shadow-xl shadow-brand-500/25 flex items-center gap-2 text-sm sm:text-base transition hover:scale-105"
+            className="group px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 font-extrabold flex items-center justify-center gap-3 shadow-xl shadow-purple-600/25 transition-all duration-300 hover:-translate-y-1"
           >
-            <Play className="w-5 h-5 fill-current" /> Enter Live Game Arena
+            <Play className="w-5 h-5 fill-current" />
+            Enter Game Arena
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
+
           <Link
             to="/how-to-play"
-            className="px-6 py-3.5 bg-dark-800 hover:bg-dark-700 text-slate-200 border border-dark-700 font-bold rounded-xl text-sm sm:text-base transition"
+            className="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-400/40 font-bold text-slate-200 flex items-center justify-center gap-2 transition-all"
           >
-            How to Play & Rules
+            <Gamepad2 className="w-5 h-5 text-cyan-400" />
+            How to Play
           </Link>
         </div>
 
-        {/* Feature Highlights Pills */}
-        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto text-xs text-slate-300">
-          <div className="bg-dark-850/80 border border-dark-700/80 p-3 rounded-xl flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4 text-brand-400" />
-            <span>2,000 Unique Boards</span>
-          </div>
-          <div className="bg-dark-850/80 border border-dark-700/80 p-3 rounded-xl flex items-center justify-center gap-2">
-            <Zap className="w-4 h-4 text-amber-400" />
-            <span>Live 1–119 RNG Spinner</span>
-          </div>
-          <div className="bg-dark-850/80 border border-dark-700/80 p-3 rounded-xl flex items-center justify-center gap-2">
-            <Trophy className="w-4 h-4 text-emerald-400" />
-            <span>Instant Prize Claims</span>
-          </div>
-          <div className="bg-dark-850/80 border border-dark-700/80 p-3 rounded-xl flex items-center justify-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-indigo-400" />
-            <span>Verified UPI Payouts</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Interactive 4x4 Sample Board Preview */}
-      <section className="max-w-5xl mx-auto px-4">
-        <div className="bg-gradient-to-b from-dark-850 to-dark-900 border border-dark-700 rounded-3xl p-6 sm:p-10 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Left text */}
-            <div className="space-y-4">
-              <span className="text-xs font-bold text-brand-400 uppercase tracking-wider">
-                Authentic Gameplay
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-snug">
-                How Board Varayal Works
-              </h2>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                Every player receives a 4×4 card containing 16 random, non-repeating numbers from 1 to 119. When the administrator spins a number, matching numbers on your card are highlighted with the traditional crossed-out <em>Varayal</em> mark.
-              </p>
-              <ul className="space-y-2.5 text-xs text-slate-300 pt-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>No duplicate boards: Each 4×4 board is exclusive per game session.</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Automatic pattern detection: Wins are verified instantly via Socket.IO.</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>100% Non-repeating spinner: Each ball 1–119 is drawn at most once.</span>
-                </li>
-              </ul>
-              <div className="pt-2">
-                <Link
-                  to="/lobby"
-                  className="inline-flex items-center gap-2 text-brand-400 hover:text-brand-300 font-bold text-sm"
-                >
-                  Browse Available Game Sessions <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Right: Mock interactive board */}
-            <div className="bg-dark-900 p-5 rounded-2xl border border-dark-700/80 shadow-inner">
-              <div className="flex items-center justify-between pb-3 border-b border-dark-800 text-xs">
-                <span className="font-mono font-bold text-brand-400">Sample Card #0412</span>
-                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-bold">
-                  4 Matches Marked
-                </span>
-              </div>
-              <div className="grid grid-cols-4 gap-2 pt-3">
-                {[
-                  { n: 14, m: true }, { n: 42, m: false }, { n: 88, m: true }, { n: 105, m: false },
-                  { n: 23, m: false }, { n: 57, m: true }, { n: 91, m: false }, { n: 112, m: false },
-                  { n: 31, m: false }, { n: 64, m: false }, { n: 79, m: true }, { n: 118, m: false },
-                  { n: 7, m: false }, { n: 49, m: false }, { n: 83, m: false }, { n: 99, m: false }
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className={`h-14 rounded-xl flex items-center justify-center font-mono font-bold text-sm sm:text-base border relative select-none ${
-                      item.m
-                        ? 'bg-brand-500/25 text-brand-300 border-brand-500/70 shadow-inner'
-                        : 'bg-dark-800 text-slate-200 border-dark-700'
-                    }`}
-                  >
-                    <span>{item.n}</span>
-                    {item.m && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-[110%] h-0.5 bg-brand-400 rotate-45 transform shadow-[0_0_6px_rgba(251,146,60,0.8)]" />
-                        <div className="w-[110%] h-0.5 bg-brand-400 -rotate-45 transform shadow-[0_0_6px_rgba(251,146,60,0.8)] absolute" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Winning Patterns Grid */}
-      <section className="max-w-7xl mx-auto px-4">
-        <div className="text-center space-y-2 mb-10">
-          <span className="text-xs font-bold text-brand-400 uppercase tracking-wider">
-            Multiple Ways to Win
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Configurable Prize Patterns
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
-            Each game session features active prizes across traditional board combinations.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PATTERNS.map((p, idx) => (
+        {/* Feature cards */}
+        <div className="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 max-w-5xl mx-auto">
+          {features.map((item, i) => (
             <div
-              key={idx}
-              className="bg-dark-850 border border-dark-700/80 hover:border-brand-500/50 p-5 rounded-2xl transition group"
+              key={i}
+              className="group relative p-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.07] transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="px-2.5 py-1 bg-brand-500/10 text-brand-400 rounded-md text-[11px] font-bold border border-brand-500/20">
-                  {p.tag}
-                </span>
-                <span className="font-mono font-extrabold text-sm text-emerald-400">{p.prize}</span>
+              <div className={`w-11 h-11 mx-auto mb-3 rounded-xl ${item.bg} flex items-center justify-center`}>
+                <item.icon className={`w-5 h-5 ${item.color}`} />
               </div>
-              <h3 className="text-base font-bold text-white group-hover:text-brand-300 transition">
-                {p.title}
-              </h3>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">{p.desc}</p>
+              <h3 className="text-sm sm:text-base font-extrabold text-white">{item.title}</h3>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">{item.sub}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Compliance & Fair Play Assurance Card */}
-      <section className="max-w-4xl mx-auto px-4">
-        <div className="bg-dark-850/80 border border-dark-700 p-6 rounded-2xl space-y-3 text-xs text-slate-400">
-          <div className="flex items-center gap-2 text-white font-bold text-sm">
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <span>Strict Indian Gaming & Financial Compliance</span>
+      {/* BOARD PREVIEW */}
+      <section className="relative max-w-6xl mx-auto px-4 py-8">
+        <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#17152e] via-[#11162b] to-[#101d32] p-6 sm:p-10 shadow-2xl">
+
+          <div className="absolute top-0 right-0 w-72 h-72 bg-violet-500/10 blur-[100px] rounded-full" />
+
+          <div className="relative grid md:grid-cols-2 gap-10 items-center">
+
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 text-cyan-400 text-xs font-extrabold uppercase tracking-[0.2em]">
+                <Sparkles className="w-4 h-4" />
+                Authentic Gameplay
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-black leading-tight">
+                Your Board.
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">
+                  Your Winning Moment.
+                </span>
+              </h2>
+
+              <p className="text-sm text-slate-400 leading-7">
+                Every player receives a 4×4 card containing 16 random,
+                non-repeating numbers from 1 to 119. When the administrator
+                spins a number, matching numbers on your card are highlighted
+                with the traditional crossed-out Varayal mark.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  'Exclusive boards with no duplicates per session.',
+                  'Automatic pattern detection using Socket.IO.',
+                  'Non-repeating number draws from 1 to 119.',
+                ].map((text, i) => (
+                  <div key={i} className="flex items-center gap-3 text-xs sm:text-sm text-slate-300">
+                    <div className="w-6 h-6 shrink-0 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    {text}
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                to="/lobby"
+                className="inline-flex items-center gap-2 text-cyan-400 font-bold text-sm hover:text-cyan-300 transition-colors pt-2"
+              >
+                Explore Game Sessions
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Board */}
+            <div className="relative max-w-md w-full mx-auto">
+              <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-r from-violet-600/30 via-pink-500/20 to-cyan-500/30 blur-xl" />
+
+              <div className="relative rounded-3xl bg-[#0c1020] border border-white/10 p-5 sm:p-7 shadow-2xl">
+                <div className="flex justify-between items-center mb-5">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Your Sample Card</p>
+                    <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">
+                      #0412
+                    </h3>
+                  </div>
+
+                  <div className="px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+                    ✓ 4 Matches
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2.5">
+                  {board.map((item, i) => (
+                    <div
+                      key={i}
+                      className={`relative aspect-square rounded-xl flex items-center justify-center font-black text-base sm:text-xl border transition-all duration-300 ${
+                        item.m
+                          ? 'bg-gradient-to-br from-violet-500/30 to-pink-500/20 border-violet-400/60 text-white shadow-lg shadow-violet-500/10'
+                          : 'bg-gradient-to-br from-[#1b2138] to-[#151a2c] border-white/[0.07] text-slate-300'
+                      }`}
+                    >
+                      {item.n}
+                      {item.m && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="absolute w-[120%] h-[3px] bg-gradient-to-r from-pink-400 to-orange-400 rotate-45 rounded-full shadow-[0_0_10px_rgba(236,72,153,0.8)]" />
+                          <div className="absolute w-[120%] h-[3px] bg-gradient-to-r from-pink-400 to-orange-400 -rotate-45 rounded-full shadow-[0_0_10px_rgba(236,72,153,0.8)]" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Latest drawn number</span>
+                  <span className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center font-black shadow-lg shadow-pink-500/20">
+                    79
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="leading-relaxed">
-            Board Varayal operates strictly within applicable Indian legal frameworks. We require 18+ age verification and prohibit real-money gameplay for users residing in states with statutory restrictions on prize contests (Andhra Pradesh, Assam, Nagaland, Odisha, Sikkim, Telangana).
+        </div>
+      </section>
+
+      {/* WINNING PATTERNS */}
+      <section className="relative max-w-7xl mx-auto px-4 pt-16">
+        <div className="text-center mb-12 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold">
+            <Trophy className="w-4 h-4" />
+            MULTIPLE WAYS TO WIN
+          </div>
+
+          <h2 className="text-3xl sm:text-4xl font-black">
+            Winning <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400">Patterns</span>
+          </h2>
+
+          <p className="text-sm text-slate-500 max-w-xl mx-auto">
+            Discover the different combinations and prizes available in each game session.
           </p>
-          <p className="leading-relaxed">
-            All number generation is executed via server-side cryptographic entropy and logged immutably in MongoDB audit records.
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {PATTERNS.map((p, idx) => (
+            <div
+              key={idx}
+              className="group relative overflow-hidden rounded-2xl bg-white/[0.035] border border-white/[0.08] p-6 hover:-translate-y-1.5 hover:border-white/20 transition-all duration-300"
+            >
+              <div className={`absolute -top-16 -right-16 w-36 h-36 rounded-full bg-gradient-to-br ${p.color} opacity-[0.12] blur-2xl group-hover:opacity-25 transition`} />
+
+              <div className="relative">
+                <div className="flex items-start justify-between mb-6">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${p.color} flex items-center justify-center shadow-lg`}>
+                    <p.icon className="w-6 h-6 text-white" />
+                  </div>
+
+                  <span className="px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-[10px] font-bold text-slate-400">
+                    {p.tag}
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-extrabold text-white group-hover:text-violet-300 transition-colors">
+                  {p.title}
+                </h3>
+
+                <p className="text-xs text-slate-500 leading-relaxed mt-2 min-h-10">
+                  {p.desc}
+                </p>
+
+                <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/[0.07]">
+                  <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Prize</span>
+                  <span className={`text-xl font-black text-transparent bg-clip-text bg-gradient-to-r ${p.color}`}>
+                    {p.prize}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="relative max-w-6xl mx-auto px-4 pt-20">
+        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-violet-700 via-purple-700 to-pink-700 p-8 sm:p-14 text-center shadow-2xl shadow-purple-900/30">
+          <div className="absolute -top-24 -left-24 w-72 h-72 bg-cyan-400/20 blur-[100px] rounded-full" />
+          <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-pink-300/20 blur-[100px] rounded-full" />
+
+          <div className="relative">
+            <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-white/15 flex items-center justify-center border border-white/20">
+              <Crown className="w-7 h-7 text-amber-300" />
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl font-black">
+              Ready to Enter the Arena?
+            </h2>
+
+            <p className="mt-4 text-sm text-white/70 max-w-xl mx-auto">
+              Explore available game sessions and discover your exclusive board.
+            </p>
+
+            <Link
+              to="/lobby"
+              className="inline-flex items-center gap-3 mt-8 px-8 py-4 rounded-xl bg-white text-violet-700 font-black text-sm hover:bg-cyan-50 hover:-translate-y-1 transition-all shadow-xl"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              Explore Game Arena
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* COMPLIANCE */}
+      <section className="relative max-w-5xl mx-auto px-4 pt-16">
+        <div className="rounded-2xl bg-white/[0.035] border border-white/[0.08] p-6 sm:p-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-white">Gaming & Fair Play Information</h3>
+              <p className="text-[10px] text-slate-500">Responsible gaming and platform security</p>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-400 leading-6">
+            Board Varayal requires 18+ age verification and restricts real-money
+            gameplay where applicable laws prohibit such contests. Please review
+            applicable local laws before participating.
+          </p>
+
+          <p className="text-xs text-slate-400 leading-6 mt-3">
+            Number generation is executed server-side using cryptographic
+            entropy, with results recorded in MongoDB audit records.
           </p>
         </div>
       </section>
 
-      <PaymentModal isOpen={paymentOpen} onClose={() => setPaymentOpen(false)} />
+      <PaymentModal
+        isOpen={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+      />
     </div>
   );
 }
-
