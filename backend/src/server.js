@@ -167,7 +167,7 @@ const PORT = process.env.PORT || 5000;
 
 connectDB().then(async () => {
   // await seedInitialData();
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`[Board Varayal Server] Running on PORT: ${PORT}`);
   });
 });

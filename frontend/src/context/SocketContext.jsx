@@ -12,8 +12,9 @@ export function SocketProvider({ children }) {
 
   useEffect(() => {
     // In Vite dev proxy, socket.io connects to window.location.origin
-    // In production (Vercel), connect to deployed backend via VITE_SOCKET_URL or VITE_API_URL if set
-    const socketEndpoint = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || undefined;
+    // In production or when VITE_API_URL/VITE_BACKEND_URL is set, connect directly
+    const rawEndpoint = (import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').trim();
+    const socketEndpoint = rawEndpoint ? rawEndpoint.replace(/\/+$/, '').replace(/\/api$/, '') : undefined;
     const socketInstance = io(socketEndpoint, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 20,
